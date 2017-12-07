@@ -1,0 +1,19 @@
+{
+    "projectName": "SF V2",
+    "username": "stefan@devtwo.com",
+    "id": "43baa670-c618-11e7-ad4b-c124ec1f8ee3",
+    "namespace": "",
+    "orgType": "developer",
+    "loginUrl": "https://login.salesforce.com/",
+    "instanceUrl": "https://eu11.salesforce.com",
+    "workspace": "C:\\Users\\Stefan\\Documents",
+    "subscription": [
+        "ApexClass",
+        "ApexComponent",
+        "ApexPage",
+        "ApexTrigger",
+        "CustomMetadata",
+        "CustomObject",
+        "StaticResource"
+    ]
+}

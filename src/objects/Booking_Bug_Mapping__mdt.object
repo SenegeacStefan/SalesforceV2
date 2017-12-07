@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Type used to store object record mapping between the BookingBug Data object and Standard or Custom objects.</description>
+    <fields>
+        <fullName>API_Name__c</fullName>
+        <description>API Name for the Salesforce Object.
+Example: Custom_Object__c</description>
+        <encrypted>false</encrypted>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <inlineHelpText>API Name for the Salesforce Object.
+Example: Custom_Object__c</inlineHelpText>
+        <label>API Name</label>
+        <length>150</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>FIeld_Map_Definition__c</fullName>
+        <description>You can define field level mapping in a simple JSON format. 
+Convention used: &quot;{&quot;BBData_field&quot;:&quot;Standard_Field&quot;}&quot;</description>
+        <encrypted>false</encrypted>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <inlineHelpText>You can define field level mapping in a simple JSON format. 
+Convention used: &quot;{&quot;BBData_field&quot;:&quot;Standard_Field&quot;}&quot;</inlineHelpText>
+        <label>FIeld Map Definition</label>
+        <length>131072</length>
+        <type>LongTextArea</type>
+        <visibleLines>3</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Is_Active__c</fullName>
+        <defaultValue>false</defaultValue>
+        <description>Field that indicates if the current mapping is active or not.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <inlineHelpText>Field that indicates if the current mapping is active or not.</inlineHelpText>
+        <label>Is Active</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Type__c</fullName>
+        <description>Booking Bug type of entity.</description>
+        <externalId>false</externalId>
+        <fieldManageability>DeveloperControlled</fieldManageability>
+        <inlineHelpText>Type of entity. 
+Example: Contact could be of Client type, Event could be Booking, User should be Login and so on.</inlineHelpText>
+        <label>Type</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Client</fullName>
+                <default>true</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Booking</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Login</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Staff</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Service</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>Resource</fullName>
+                <default>false</default>
+            </picklistValues>
+            <restrictedPicklist>true</restrictedPicklist>
+            <sorted>false</sorted>
+        </picklist>
+        <required>true</required>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Unique_Field__c</fullName>
+        <description>Field to enforce uniqueness of records in order to prevent duplicates. Example: email or phone number.</description>
+        <encrypted>false</encrypted>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>Field to enforce uniqueness of records in order to prevent duplicates. Example: email or phone number.</inlineHelpText>
+        <label>Unique Field</label>
+        <length>200</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Update_Only__c</fullName>
+        <defaultValue>false</defaultValue>
+        <externalId>false</externalId>
+        <fieldManageability>SubscriberControlled</fieldManageability>
+        <inlineHelpText>Only update existing records based on the Unique Field value and do not create new ones.  
+Warning: New records will get lost!</inlineHelpText>
+        <label>Update Only</label>
+        <type>Checkbox</type>
+    </fields>
+    <label>Booking Bug Mapping</label>
+    <pluralLabel>Booking Bug Mapping</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>
