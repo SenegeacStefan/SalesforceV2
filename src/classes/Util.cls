@@ -66,6 +66,7 @@ public with sharing class Util {
 	public static void makeDMLOperation(Map<String, List<Sobject>> objects) {
 		dmlOptions.optAllOrNone = false;
 		Map<String, String> objectFieldMappings = Mapper.getActiveUniqueFields();
+		system.debug('==>objectfieldMappings map:' + objectFieldMappings);
 		List<SObject> updateOnlyObjects = filterUpdateOnly(objects);
 		
 		try {
@@ -84,9 +85,10 @@ public with sharing class Util {
 					//--see above
 				//cast to SObjectField
 				//upsert with that field
-				List<SObject> casted = (List<SObject>)Type.forName('List<' + objectName + '>').newInstance();
+				List<SObject> casted = (List<SObject>)Type.forName('List<' + objectName + '>').newInstance();//don't know how reliable is this
 				casted.addAll(objects.get(objectName));
 				//database.SaveResult[] dmlResults = database.upsert(casted, dmlOptions);
+				system.debug('==>objectFieldMappings field:' + objectFieldMappings.get(objectName));
 				upsert casted;
 				//system.debug('==>DML results:' + dmlResults); //save this and log somewhere else
 			} catch(DMLException dmlex) {
