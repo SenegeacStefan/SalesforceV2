@@ -11,13 +11,15 @@
         <value xsi:type="xsd:string">{  
  &quot;Subject&quot;:&quot;full_describe&quot;,
  &quot;Description&quot;:&quot;full_describe&quot;,
- &quot;StartDateTime&quot;:&quot;datetime&quot;,
- &quot;EndDateTime&quot;:&quot;end_datetime&quot;
+ &quot;StartDateTime&quot;:&quot;date_time&quot;,
+ &quot;EndDateTime&quot;:&quot;end_datetime&quot;,
+ &quot;DurationInMinutes&quot;:&quot;duration&quot;,
+ &quot;IsReminderSet&quot;:&quot;attended&quot;
 }</value>
     </values>
     <values>
         <field>Is_Active__c</field>
-        <value xsi:type="xsd:boolean">false</value>
+        <value xsi:type="xsd:boolean">true</value>
     </values>
     <values>
         <field>Type__c</field>

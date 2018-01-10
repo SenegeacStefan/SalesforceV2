@@ -64,6 +64,7 @@ public with sharing class Util {
 	//done?
 	//return results somewhere and do something for logging
 	public static void makeDMLOperation(Map<String, List<Sobject>> objects) {
+		Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
 		dmlOptions.optAllOrNone = false;
 		Map<String, String> objectFieldMappings = Mapper.getActiveUniqueFields();
 		system.debug('==>objectfieldMappings map:' + objectFieldMappings);
@@ -89,7 +90,19 @@ public with sharing class Util {
 				casted.addAll(objects.get(objectName));
 				//database.SaveResult[] dmlResults = database.upsert(casted, dmlOptions);
 				system.debug('==>objectFieldMappings field:' + objectFieldMappings.get(objectName));
-				upsert casted;
+				String extIdName = objectFieldMappings.get(objectName);
+
+				Schema.DescribeFieldResult extIdField;
+
+				if(String.isNotBlank(extIdName)) {
+					extIdField = Util.getFieldDetails(objectName, extIdName);
+					getFieldDetails(objectName, objectFieldMappings.get(objectName));
+					system.debug('==>extIdField:' + extIdField);
+					if(extIdField.isExternalId() || extIdField.isIdLookup()) {
+						system.debug('==>it is external id');
+						upsert casted;
+					}
+				}
 				//system.debug('==>DML results:' + dmlResults); //save this and log somewhere else
 			} catch(DMLException dmlex) {
 				system.debug('==>makeDMLOPEX:' + dmlex.getMessage());
@@ -97,6 +110,17 @@ public with sharing class Util {
 				system.debug('==>makeDMLEX:' + ex.getMessage());
 			}
 		}
+	}
+
+
+	private static Schema.DescribeFieldResult getFieldDetails(String objectName, String fieldName) {
+		Map<String, Schema.SObjectType>     globalDescribe          = Schema.getGlobalDescribe(); 
+		Schema.SObjectType                  objectType              = globalDescribe.get(objectName);
+		Schema.DescribeSObjectResult        objectDescribeResult    = objectType.getDescribe();
+
+		Map<String, Schema.SObjectField>    objectFieldMap          = objectDescribeResult.fields.getMap();
+		Schema.SObjectField                 objectField             = objectFieldMap.get(fieldName);
+		return objectField.getDescribe();
 	}
 
 	public static List<SObject> filterUpdateOnly(Map<String, List<SObject>> objects) {
@@ -122,5 +146,58 @@ public with sharing class Util {
 
 		system.debug('==>updateObjects:' + updateObjs);
 		return updateObjs;
+	}
+
+	public static DateTime stringToDate(String strDate) {
+		try {
+			Integer year = Integer.valueOf(strDate.substring(0, 4));
+            Integer month = Integer.valueOf(strDate.substring(5, 7));
+            Integer day = Integer.valueOf(strDate.substring(8, 10));
+            Integer hour = Integer.valueOf(strDate.substring(11, 13));
+            Integer minute = Integer.valueOf(strDate.substring(14, 16));
+            Integer second = Integer.valueOf(strDate.substring(17, 19));
+                
+            return Datetime.newInstance(year, month, day, hour, minute, second);
+        }
+        catch(Exception ex) {
+			return null;
+		}
+	}
+
+
+	//4 case update/insert check
+	//1 - customer wants only existing records updating. Append BB ID to them. Find them by unique_field
+	// private static List<SObject> updateObjects(String objectName, List<Sobject> objsToBeUpdated, Schema.DescribeFieldResult uniqueField) {
+	// 	if(String.isBlank(uniqueFieldName)) {
+	// 		system.debug('==>Specified unique field is null');
+	// 		return null;
+	// 	}
+		
+
+	//}
+	//2 - find existing recs by unique_filed, append BB ID and create new ones if that's the case
+	//3 - customer gives upsert field (doesn't work) - we need to find existing and append and also create new ones if that's the case(manual upsert)
+	//4 - update BY SF ID
+
+
+	//search for records that have values in the Unique Field the same as on BookingBug
+	public static List<SObject> findRecordsByUniqueField(String objectName, Set<String> existingValues, DescribeFieldResult field) {
+		//future - should check if field is encrypted or not and use sosl instead of soql
+		List<SObject> foundObjects = new List<SObject>();
+		List<string> qryParams = new String[]{field.getName(), objectName};
+		if (field.isEncrypted()) {
+			//use SOSL but apparently no 'FIND set where vals in set'
+			String searchQuery = String.join(new List<String>(existingValues), ' OR ');	// 4000 char limit in SOSL search query! *should* not be a problem
+            String qryHolder = 'FIND ' + searchQuery + ' IN ALL FIELDS Returning {1}(Id, {0})]';
+			String query = String.format(qryHolder, qryParams);
+            foundObjects = Search.query(query)[0];
+			//so - SOSL to find objects with field value equal to 'existingvalues' set - return list of sobject I guess
+		} else {
+			String qryHolder = 'SELECT Id, {0} FROM {1} WHERE {0} IN:existingValues';
+			String query = String.format(qryHolder, qryParams);
+			foundObjects = database.query(query);
+		}
+		system.debug('==>Found objects by uniqueID:' + foundObjects);
+		return foundObjects;
 	}
 }

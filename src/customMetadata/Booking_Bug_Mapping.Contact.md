@@ -26,7 +26,7 @@
     </values>
     <values>
         <field>Unique_Field__c</field>
-        <value xsi:nil="true"/>
+        <value xsi:type="xsd:string">BookingBugId__c</value>
     </values>
     <values>
         <field>Update_Only__c</field>
