@@ -1,5 +1,6 @@
 public with sharing class Util {
 
+	public static String bbIDName = 'BookingBugId__c';
 	 private static Database.DMLOptions dmlOptions = new Database.DMLOptions();
 	//method to check for duplicates
 	
@@ -63,53 +64,48 @@ public with sharing class Util {
 	//if upsert then check unique field and try assuming it is external id or idlookup and if it fails just insert
 	//done?
 	//return results somewhere and do something for logging
-	public static void makeDMLOperation(Map<String, List<Sobject>> objects) {
+	//CASE #1 - update by SF ID, discard rest
+	//CASE #2 - update by existing field, discard rest
+	//CASE #3 - update by existing field, upsert rest by bb id 
+	//this method will not make DB Callouts! move DML ops in different method
+	public static void makeDMLOperation(Map<String, List<Sobject>> objects) { //objectname - listof objects
 		Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
-		dmlOptions.optAllOrNone = false;
-		Map<String, String> objectFieldMappings = Mapper.getActiveUniqueFields();
-		system.debug('==>objectfieldMappings map:' + objectFieldMappings);
-		List<SObject> updateOnlyObjects = filterUpdateOnly(objects);
-		
-		try {
-			database.update(updateOnlyObjects, dmlOptions);
-		} catch(DMLException ex) {
-			system.debug('==>filterUpdateOnly:' + ex.getMessage());
-		}
+		Map<String, String> objectFieldMappings = Mapper.getActiveUniqueFields(); //unique field + objectname
+		Map<String, Booking_Bug_Mapping__mdt> mappingsInfo = Mapper.getActiveMetadataRecordsMap();
 
-		system.debug('==>updateOnlyObjects in makeDML:' + updateOnlyObjects);
-		system.debug('==>objects map after filtering update:' + objects);
-		for(String objectName : objects.keySet()) {
-			// List<SObject> castObjects = (List<SObject>)Type.forName(objectName).newInstance();
-			// castObjects.addAll(objects.get(objectName));
-			try {					
-				//get METMappings(with field)
-					//--see above
-				//cast to SObjectField
-				//upsert with that field
-				List<SObject> casted = (List<SObject>)Type.forName('List<' + objectName + '>').newInstance();//don't know how reliable is this
-				casted.addAll(objects.get(objectName));
-				//database.SaveResult[] dmlResults = database.upsert(casted, dmlOptions);
-				system.debug('==>objectFieldMappings field:' + objectFieldMappings.get(objectName));
-				String extIdName = objectFieldMappings.get(objectName);
-
-				Schema.DescribeFieldResult extIdField;
-
-				if(String.isNotBlank(extIdName)) {
-					extIdField = Util.getFieldDetails(objectName, extIdName);
-					getFieldDetails(objectName, objectFieldMappings.get(objectName));
-					system.debug('==>extIdField:' + extIdField);
-					if(extIdField.isExternalId() || extIdField.isIdLookup()) {
-						system.debug('==>it is external id');
-						upsert casted;
-					}
+		//update only records (check update_only, check for SF ID) 
+		List<SObject> recsToUpdateByID = filterUpdateOnly(objects); //(CASE #1) 
+		List<SObject> recsToUpdateByUniqueField = new List<SObject>(); //(CASE #2)
+		for(String objName : objects.keySet()) {
+			String uniqueFieldName = objectFieldMappings.get(objName);
+			Schema.DescribeFieldResult uniqueField;
+			//update only(check unique field, assign BB ID, discard non found)
+			system.debug('==>here(makeDMLOP before IF)');
+			if(String.isNotBlank(uniqueFieldName)) {
+				uniqueField = Util.getFieldDetails(objName, uniqueFieldName);
+				Set<String> uniqueValues = extractUniqueFieldValue(objects.get(objName), uniqueFieldName);
+				List<SObject> foundObjects = findRecordsByUniqueField(objName, uniqueValues, uniqueField);
+				Map<String, Integer> bbValMap = bbFieldValueMap(objects.get(objName), uniqueFieldName);
+				for(SObject objToUpdate : foundObjects) {
+					Integer newBBId = bbValMap.get((String)objToUpdate.get(uniqueFieldName));
+					objToUpdate.put(bbIDName, newBBId);
 				}
-				//system.debug('==>DML results:' + dmlResults); //save this and log somewhere else
-			} catch(DMLException dmlex) {
-				system.debug('==>makeDMLOPEX:' + dmlex.getMessage());
-			} catch(Exception ex) {
-				system.debug('==>makeDMLEX:' + ex.getMessage());
+				update foundObjects;
+			} else {
+				system.debug('==>here(makeDMLOP in else)');
+				String listType = 'List<' + objName + '>';
+        		List<SObject> castRecords = (List<SObject>)Type.forName(listType).newInstance();
+        		castRecords.addAll(objects.get(objName));
+				Schema.DescribeFieldResult bbExternalId = getFieldDetails(objName, bbIDName);
+				database.upsert(castRecords, bbExternalId.getSObjectField());
+				system.debug('==>castRecords:' + castRecords);
 			}
+
+			//upsert-manual(check unique field, assign BB ID, insert others)
+			//insert only(upsert by BB ID)
+			//UPSERT BY BB ID ALL
 		}
+
 	}
 
 
@@ -126,7 +122,6 @@ public with sharing class Util {
 	public static List<SObject> filterUpdateOnly(Map<String, List<SObject>> objects) {
 		List<SObject> updateObjs = new List<SObject>();
 		List<Booking_Bug_Mapping__mdt> updateMappings = Mapper.getActiveUpdateOnlyMappings();
-
 		system.debug('==>updateMappings:' + updateMappings);
 		if(updateMappings.size() > 0) {
 			for(String apiName : objects.keySet()) {
@@ -137,15 +132,12 @@ public with sharing class Util {
 					}
 			}
 		}
-
-		//filter out objects that have a value on ID(otherwise they can't be updated)
-		for(SObject obj : updateObjs) {
+		for(SObject obj : updateObjs) { //filter out objects that have a value on ID(otherwise they can't be updated)
 			if(obj.get('Id') == null)
 				obj.addError('Does not have value on the ID field!');
 		}
-
 		system.debug('==>updateObjects:' + updateObjs);
-		return updateObjs;
+		return updateObjs; //this returns {account, contact, lead, etc and will work with one database.update call for all}
 	}
 
 	public static DateTime stringToDate(String strDate) {
@@ -185,7 +177,7 @@ public with sharing class Util {
 		//future - should check if field is encrypted or not and use sosl instead of soql
 		List<SObject> foundObjects = new List<SObject>();
 		List<string> qryParams = new String[]{field.getName(), objectName};
-		if (field.isEncrypted()) {
+		if (!field.isFilterable()) {
 			//use SOSL but apparently no 'FIND set where vals in set'
 			String searchQuery = String.join(new List<String>(existingValues), ' OR ');	// 4000 char limit in SOSL search query! *should* not be a problem
             String qryHolder = 'FIND ' + searchQuery + ' IN ALL FIELDS Returning {1}(Id, {0})]';
@@ -198,6 +190,24 @@ public with sharing class Util {
 			foundObjects = database.query(query);
 		}
 		system.debug('==>Found objects by uniqueID:' + foundObjects);
+
 		return foundObjects;
 	}
+
+	private Static Set<String> extractUniqueFieldValue(List<SObject> objects, String field) {
+		Set<String> values = new Set<String>();
+		for(SObject obj : objects) {
+			values.add((String)obj.get(field));
+		}
+		return values;
+	}
+
+	private Static Map<String, Integer> bbFieldValueMap(List<SObject> objectsFromBB, String uniqueField) {
+		Map<String, Integer> fieldValueMap = new Map<String, Integer>();
+		for(SObject obj : objectsFromBB) {
+			fieldValueMap.put((String)obj.get(uniqueField), Integer.valueof(obj.get(bbIDName)));
+		}
+		return fieldValueMap;
+	}
+
 }

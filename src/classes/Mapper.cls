@@ -109,9 +109,25 @@ public with sharing class Mapper {
 		return bookings;
 	}
 
-	public static List<Booking_Bug_Mapping__mdt> getMetadataRecords() {
-		return [SELECT API_Name__c, Field_Map_Definition__c, Is_Active__c, Type__c, Update_Only__c
-				FROM Booking_Bug_Mapping__mdt];
+	public static Map<String, Booking_Bug_Mapping__mdt> getMetadataRecordsMap() {
+		Map<String, Booking_Bug_Mapping__mdt> mappingsMap = new Map<String, Booking_Bug_Mapping__mdt>();
+		List<Booking_Bug_Mapping__mdt> metadataRecords =  [SELECT API_Name__c, Field_Map_Definition__c, Is_Active__c, Type__c, Update_Only__c
+														   FROM Booking_Bug_Mapping__mdt];
+		for(Booking_Bug_Mapping__mdt mapping : metadataRecords) {
+			mappingsMap.put(mapping.API_Name__c, mapping);
+		}
+		return mappingsMap;
+	}
+
+	public static Map<String, Booking_Bug_Mapping__mdt> getActiveMetadataRecordsMap() {
+		Map<String, Booking_Bug_Mapping__mdt> mappingsMap = new Map<String, Booking_Bug_Mapping__mdt>();
+		List<Booking_Bug_Mapping__mdt> metadataRecords =  [SELECT API_Name__c, Field_Map_Definition__c, Is_Active__c, Type__c, Update_Only__c
+														   FROM Booking_Bug_Mapping__mdt 
+														   WHERE Is_Active__c = TRUE];
+		for(Booking_Bug_Mapping__mdt mapping : metadataRecords) {
+			mappingsMap.put(mapping.API_Name__c, mapping);
+		}
+		return mappingsMap;
 	}
 
 	public static List<Booking_Bug_Mapping__mdt> getActiveClientRecordsOrderedByObjectType() {
