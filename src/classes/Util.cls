@@ -2,8 +2,19 @@ public with sharing class Util {
 
 	public static String bbIDName = 'BookingBugId__c';
 	 private static Database.DMLOptions dmlOptions = new Database.DMLOptions();
-	//method to check for duplicates
 	
+	//static variables to specify type of integration in order to cover basic objects referencing 
+	//===========================================================================================
+	public static boolean EVENTINTEGRATION 			= false;
+	public static boolean CONTACTINTEGRATION 		= false;
+	public static boolean ACCOUNTINTEGRATION 		= false;
+	public static boolean OPPORTUNITYINTEGRATION 	= false;
+	public static boolean TASKINTEGRATION 			= false;
+	public static boolean LEADINTEGRATION 			= false;
+	public static boolean CASEINTEGRATION 			= false;
+	//===========================================================================================
+	
+	//method to check for duplicates
 	//Updates or inserts a list of objects based on the uniqueness of the BB ID
 	public static void dynamicUpsert(List<Sobject> genericSObjects, String objectType) { 
 		system.debug('==>DynamicUpsert type:' + objectType);
@@ -68,6 +79,8 @@ public with sharing class Util {
 	//CASE #2 - update by existing field, discard rest
 	//CASE #3 - update by existing field, upsert rest by bb id 
 	//this method will not make DB Callouts! move DML ops in different method
+
+	//!!!!!!!!!!!!!!!!!!!!!!!! - STOP UPSERT IF ONLY UPDATE SELECTED - !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	public static void makeDMLOperation(Map<String, List<Sobject>> objects) { //objectname - listof objects
 		Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
 		Map<String, String> objectFieldMappings = Mapper.getActiveUniqueFields(); //unique field + objectname
@@ -100,15 +113,14 @@ public with sharing class Util {
 				database.upsert(castRecords, bbExternalId.getSObjectField());
 				system.debug('==>castRecords:' + castRecords);
 			}
-
 			//upsert-manual(check unique field, assign BB ID, insert others)
 			//insert only(upsert by BB ID)
 			//UPSERT BY BB ID ALL
 		}
-
+		stdLinking(objects);
 	}
 
-
+	@TestVisible
 	private static Schema.DescribeFieldResult getFieldDetails(String objectName, String fieldName) {
 		Map<String, Schema.SObjectType>     globalDescribe          = Schema.getGlobalDescribe(); 
 		Schema.SObjectType                  objectType              = globalDescribe.get(objectName);
@@ -190,10 +202,10 @@ public with sharing class Util {
 			foundObjects = database.query(query);
 		}
 		system.debug('==>Found objects by uniqueID:' + foundObjects);
-
 		return foundObjects;
 	}
 
+	@TestVisible
 	private Static Set<String> extractUniqueFieldValue(List<SObject> objects, String field) {
 		Set<String> values = new Set<String>();
 		for(SObject obj : objects) {
@@ -209,5 +221,99 @@ public with sharing class Util {
 		}
 		return fieldValueMap;
 	}
+
+	//STD OBJECT REFERENCING REGION
+	//=============================================================================================================================================
+	@TestVisible
+	private static List<Integer> extractBBId(List<SObject> objects) {
+		List<Integer> bbIds = new List<Integer>();
+			for(SObject sobj : objects) {
+				bbIds.add(Integer.valueOf(sobj.get(bbIDName)));
+			}
+		system.debug('==>extracted BB Ids:' + bbIds);
+		return bbIds;
+	}
+
+	@TestVisible
+	private static Map<Integer, Sobject> getBBIDMap(List<Integer> bbids, List<string> qryParams, String queryHolder) {
+		Map<Integer, Sobject> sobjMap = new Map<Integer, Sobject>();
+		String query = String.format(queryHolder, qryParams);
+		List<SObject> bbSObjs = database.query(query);
+		for(SObject obj : bbSObjs) {
+			sobjMap.put(Integer.valueOf(obj.get(bbIDName)), obj);
+		}
+		return sobjMap;
+	}
+
+	public Static void stdLinking(Map<String, List<SObject>> objects) {
+		List<Integer> bbids;
+		Map<Integer, Id> objMap;
+		Map<Integer, Sobject> contactMap, accountMap, leadMap, taskMap,
+						 opportunityMap, eventMap, caseMap;
+		List<SObject> linkedObjects = new List<SObject>();
+		List<String> qryParams;
+		String queryHolder;
+		for(String objName : objects.keySet()) {
+			if(objName.equalsIgnoreCase('Account')) { //no linking
+				qryParams = new List<String>{bbIDName,objName};
+				queryHolder = 'select Id, {0} from {1} where {0} in: bbids';
+				bbids = extractBBId(objects.get(objName));
+				accountMap = getBBIdMap(bbids, qryParams, queryHolder);
+				system.debug('==>accountMap in stdLinking:' + accountMap);
+			}
+			if(objName.equalsIgnoreCase('Lead')) { //no linking
+				qryParams = new List<String>{bbIDName,objName};
+				queryHolder = 'select Id, {0} from {1} where {0} in: bbids';
+				bbids = extractBBId(objects.get(objName));
+				leadMap = getBBIdMap(bbids, qryParams, queryHolder);
+			}
+			if(objName.equalsIgnoreCase('Contact')) { //accountID
+				qryParams = new List<String>{bbIDName,objName};
+				queryHolder = 'select Id, {0}, AccountId from {1} where {0} in: bbids';
+				bbids = extractBBId(objects.get(objName));
+				contactMap = getBBIdMap(bbids, qryParams, queryHolder);
+				for(Sobject c : contactMap.values()) {
+					Integer bbId = Integer.valueOf(c.get('BookingBugId__c'));
+					Id accId = (Id)accountMap.get(bbId).Id;
+					c.put('AccountId', accId);
+				}
+				linkedObjects.addAll(contactMap.values());
+			}
+			if(objName.equalsIgnoreCase('Opportunity')) { //accountId
+				qryParams = new List<String>{bbIDName,objName};
+				queryHolder = 'select Id, {0}, AccountId from {1} where {0} in: bbids';
+				bbids = extractBBId(objects.get(objName));
+				opportunityMap = getBBIdMap(bbids, qryParams, queryHolder);
+				for(Sobject o : opportunityMap.values()) {
+					Integer bbId = Integer.valueOf(o.get('BookingBugId__c'));
+					Id accId = (Id)accountMap.get(bbId).Id;
+					o.put('AccountId', accId);
+				}
+				linkedObjects.addAll(opportunityMap.values());
+			}
+			if(objName.equalsIgnoreCase('Case')) { //accountId, contactID
+				qryParams = new List<String>{bbIDName,objName};
+				queryHolder = 'select Id, {0}, AccountId, ContactId from {1} where {0} in: bbids';
+				bbids = extractBBId(objects.get(objName));
+				caseMap = getBBIdMap(bbids, qryParams, queryHolder);
+			}
+			if(objName.equalsIgnoreCase('Event')) { //whoId, whatId, AccountId
+				qryParams = new List<String>{bbIDName,objName};
+				queryHolder = 'select Id, {0}, WhoId, WhatId from {1} where {0} in: bbids';
+				bbids = extractBBId(objects.get(objName));
+				eventMap = getBBIdMap(bbids, qryParams, queryHolder);
+			}
+			if(objName.equalsIgnoreCase('Task')) {
+				qryParams = new List<String>{bbIDName,objName}; //whoId, whatId, AccountId
+				queryHolder = 'select Id, {0}, WhoId, WhatId from {1} where {0} in: bbids';
+				bbids = extractBBId(objects.get(objName));
+				taskMap = getBBIdMap(bbids, qryParams, queryHolder);
+			}
+		}
+		update linkedObjects;
+	}
+
+	//=============================================================================================================================================
+	//STD OBJECT REFERENCING REGION END
 
 }

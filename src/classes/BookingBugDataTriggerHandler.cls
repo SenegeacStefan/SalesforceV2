@@ -18,33 +18,17 @@ public class BookingBugDataTriggerHandler extends TriggerHandler {
 		List<Client> clients = new List<Client>();
 		List<Booking> bookings = new List<Booking>();
 		for(BookingBug_Data__c bdata : newBBDataList) {
-			//system.debug('==>bdata.Clients__c: ' + bdata.Clients__c);
-			clients = Mapper.deserializeClients(bdata.Clients__c);
-			system.debug('==>bdata.Booking__c: ' + bdata.Booking__c);
-			bookings = Mapper.deserializeBookings(bdata.Booking__c);
+			Mapper m = new Mapper();
+			if(String.isNotBlank(bdata.Clients__c)) {
+				clients = Mapper.deserializeClients(bdata.Clients__c);
+				Map<String, List<Sobject>> clientlist = m.createClientMapping(clients);
+				Util.makeDMLOperation(clientlist);
+			}
+			if(String.isNotBlank(bdata.Booking__c)) {
+				bookings = Mapper.deserializeBookings(bdata.Booking__c);
+				Map<string, List<Sobject>> booklist = m.createBookingMapping(bookings);
+				Util.makeDMLOperation(booklist); 
+			}
 		}
-		system.debug('==>clients:' + clients);
-		system.debug('==>client fname:' + clients[0].get('first_name'));
-		system.debug('==>clients count:' + clients.size());
-		system.debug('==>bookings:' + bookings);
-		system.debug('==>bookings count:' + bookings.size());
-
-		Mapper m = new Mapper();
-		Map<String, List<Sobject>> clientlist = m.createClientMapping(clients);
-		Map<string, List<Sobject>> booklist = m.createBookingMapping(bookings);
-		system.debug('==>bookObjList' + booklist);
-		system.debug('==>clientList:' + clientlist);
-		
-		Util.makeDMLOperation(booklist); //
-		Util.makeDMLOperation(clientlist);
 	}
-
-	//TODO
-	//test with multiple Client types 
-	//make code error/hazard resilient
-	//structure methods in a pretty way
-	//start-finish booking
-	//find way to link everything through bb_id or other stuff
-	//start considering SF-REF (ID) and how to treat it
-	//best of luck to me :) 
 }
