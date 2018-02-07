@@ -121,4 +121,20 @@ public with sharing class Util {
 		system.debug('==>updateObjects:' + updateObjs);
 		return updateObjs;
 	}
+	
+	public static DateTime stringToDate(String strDate) {
+		try {
+			Integer year = Integer.valueOf(strDate.substring(0, 4));
+            Integer month = Integer.valueOf(strDate.substring(5, 7));
+            Integer day = Integer.valueOf(strDate.substring(8, 10));
+            Integer hour = Integer.valueOf(strDate.substring(11, 13));
+            Integer minute = Integer.valueOf(strDate.substring(14, 16));
+            Integer second = Integer.valueOf(strDate.substring(17, 19));
+                
+            return Datetime.newInstance(year, month, day, hour, minute, second);
+        }
+        catch(Exception ex) {
+			return null;
+		}
+	}
 }

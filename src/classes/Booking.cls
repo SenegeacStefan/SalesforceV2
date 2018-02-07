@@ -2,9 +2,22 @@ global class Booking extends CoreObject{
     public Integer id {get; set;}  
     public String full_describe {get; set;}  
     public String person_name {get; set;}  
-    public String date_time {get; set;}  
-    public Integer duration {get; set;}  
+    public String date_time {
+        get;
+        set {
+            date_time = String.valueOf(Util.stringToDate(value));
+        }
+    }
+	public String end_date_time {
+        get;
+        set {
+            end_date_time = String.valueOf(Util.stringToDate(value));
+        }
+	}
+	public Integer duration {get; set;}  
+	public Boolean on_waitlist {get; set;}
     public Integer company_id {get; set;}  
+	public Boolean attended {get; set;}
     public String updated_at {get; set;}  
     public String created_at {get; set;}  
     public Integer client_id {get; set;} 
@@ -27,8 +40,11 @@ global class Booking extends CoreObject{
                    String full_describe, 
                    String person_name, 
                    String date_time, 
+                   String end_date_time,
                    Integer duration, 
+				   Boolean on_waitlist,
                    Integer company_id, 
+				   Boolean attended,
                    String updated_at, 
                    String created_at,
                    Integer client_id,
@@ -48,8 +64,11 @@ global class Booking extends CoreObject{
         this.full_describe = full_describe;
         this.person_name = person_name;
         this.date_time = date_time;
+		this.end_date_time = end_date_time;
         this.duration = duration;
+		this.on_waitlist = on_waitlist;
         this.company_id = company_id;
+		this.attended = attended;
         this.updated_at = updated_at;
         this.created_at = created_at;  
         this.client_id = client_id;

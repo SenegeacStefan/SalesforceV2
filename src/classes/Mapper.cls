@@ -18,11 +18,35 @@ public with sharing class Mapper {
 			List<SObject> clientObjects = new List<SObject>();
 			for(Client client : clients) {
 				Sobject rawClient = Schema.getGlobalDescribe().get(m.API_Name__c).newSObject();
+				
+				Schema.SobjectType rawObjType = Schema.getGlobalDescribe().get(m.API_Name__c);
+				system.debug('==>rawObjType: ' + rawObjType);
+				Map<String, Schema.SObjectField> rawObjectFieldMap = rawObjType.getDescribe().fields.getMap();
+				system.debug('==>rawObjectFieldMap: ' + rawObjectFieldMap);
 				for(String s : clientMap.keyset()) { //debug
 					Object val = (Object)client.get((String)clientMap.get(s));
 					system.debug('==>cfield:' + s);
 					system.debug('==>cvalue:' + val); //https://salesforce.stackexchange.com/questions/135891/can-we-access-class-properties-dynamically-with-object-class
-					rawClient.put(s, val);
+					system.debug('*** ' + rawObjectFieldMap.get(s).getDescribe().getType());
+					if (rawObjectFieldMap.get(s).getDescribe().getType() == Schema.DisplayType.DateTime) {
+						//system.debug('==> datetime!');
+						DateTime dt;
+						try {
+							dt = Util.stringToDate((String)val);
+							rawClient.put(s, dt);
+						}
+						catch(Exception ex)
+						{
+							system.debug('==>Mapper.createBookingMapping exception: ' + ex.getMessage());
+						}
+					}
+					else if (rawObjectFieldMap.get(s).getDescribe().getType() == Schema.DisplayType.Boolean) {
+						String boolVal = (String.valueOf(val)).toLowerCase();
+						rawClient.put(s, (boolVal == 'true' || boolVal == 'yes' || boolVal == '1'));
+					}
+					else {
+						rawClient.put(s, val);
+					}
 				}
 				//test
 				clientObjects.add(rawClient);
@@ -33,18 +57,46 @@ public with sharing class Mapper {
 	}
 
 	public Map<String, List<SObject>> createBookingMapping(List<Booking> bookings) {
+		system.debug('==>Mapper.createBookingMapping bookings: ' + bookings);
 		Map<String, List<SObject>> objMapType = new Map<String, List<SObject>>();
 		List<Booking_Bug_Mapping__mdt> mappings = getActiveBookingRecordsOrderedByObjectType();
 		for(Booking_Bug_Mapping__mdt m : mappings) {
+			system.debug('==>Mapper mapping: ' + m);
 			Map<String, Object> bookingMap = deserializeMapping(m);
+			system.debug('==>Mapper.createBookingMapping bookingMap: ' + bookingMap);
 			List<SObject> bookObjects = new List<SObject>();
 			for(Booking booking : bookings) {
 				SObject rawBooking = Schema.getGlobalDescribe().get(m.API_Name__c).newSObject();
+				
+				Schema.SobjectType rawObjType = Schema.getGlobalDescribe().get(m.API_Name__c);
+				system.debug('==>rawObjType: ' + rawObjType);
+				Map<String, Schema.SObjectField> rawObjectFieldMap = rawObjType.getDescribe().fields.getMap();
+				system.debug('==>rawObjectFieldMap: ' + rawObjectFieldMap);
 				for(String s : bookingMap.keyset()) {
+					system.debug('==>bookingVal: ' + booking.get((String)bookingMap.get(s)));
 					Object val = (Object)booking.get((String)bookingMap.get(s));
 					system.debug('==>bfield:' + s);
 					system.debug('==>bvalue:' + val);
-					rawBooking.put(s, val);
+					system.debug('*** ' + rawObjectFieldMap.get(s).getDescribe().getType());
+					if (rawObjectFieldMap.get(s).getDescribe().getType() == Schema.DisplayType.DateTime) {
+						//system.debug('==> datetime!');
+						DateTime dt;
+						try {
+							dt = Util.stringToDate((String)val);
+							rawBooking.put(s, dt);
+						}
+						catch(Exception ex)
+						{
+							system.debug('==>Mapper.createBookingMapping exception: ' + ex.getMessage());
+						}
+					}
+					else if (rawObjectFieldMap.get(s).getDescribe().getType() == Schema.DisplayType.Boolean) {
+						String boolVal = (String.valueOf(val)).toLowerCase();
+						rawBooking.put(s, (boolVal == 'true' || boolVal == 'yes' || boolVal == '1'));
+					}
+					else {
+						rawBooking.put(s, val);
+					}
 				}
 				bookObjects.add(rawBooking);
 			}
@@ -58,6 +110,7 @@ public with sharing class Mapper {
 	}
 
 	public static List<Client> deserializeClients(String JSONString) {
+		System.debug('==>JSON-string: ' + JSONString);
 		Map<String, Object> objectMap = (Map<String, Object>)JSON.deserializeUntyped(JSONString);
 		system.debug('==>objectMap:' + objectMap);
 		Map<String, Object> justClientsMap = (Map<String, Object>) objectMap.get('_embedded');
