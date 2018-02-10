@@ -59,6 +59,18 @@
         <trackTrending>false</trackTrending>
     </fields>
     <fields>
+        <fullName>BookingBugId__c</fullName>
+        <externalId>true</externalId>
+        <label>BookingBugId</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>0</scale>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackTrending>false</trackTrending>
+        <type>Number</type>
+        <unique>true</unique>
+    </fields>
+    <fields>
         <fullName>CampaignId</fullName>
         <trackFeedHistory>false</trackFeedHistory>
         <trackTrending>false</trackTrending>
@@ -113,11 +125,16 @@
     </fields>
     <fields>
         <fullName>Description</fullName>
+        <encrypted>false</encrypted>
         <trackFeedHistory>false</trackFeedHistory>
         <trackTrending>false</trackTrending>
     </fields>
     <fields>
         <fullName>ExpectedRevenue</fullName>
+        <trackTrending>false</trackTrending>
+    </fields>
+    <fields>
+        <fullName>IqScore</fullName>
         <trackTrending>false</trackTrending>
     </fields>
     <fields>
@@ -168,11 +185,13 @@
     </fields>
     <fields>
         <fullName>Name</fullName>
+        <encrypted>false</encrypted>
         <trackFeedHistory>true</trackFeedHistory>
         <trackTrending>false</trackTrending>
     </fields>
     <fields>
         <fullName>NextStep</fullName>
+        <encrypted>false</encrypted>
         <trackFeedHistory>false</trackFeedHistory>
         <trackTrending>false</trackTrending>
     </fields>

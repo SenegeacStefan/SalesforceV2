@@ -292,6 +292,16 @@
         <encrypted>false</encrypted>
         <trackFeedHistory>false</trackFeedHistory>
     </fields>
+    <fields>
+        <fullName>enc__c</fullName>
+        <externalId>false</externalId>
+        <label>enc</label>
+        <length>100</length>
+        <maskChar>asterisk</maskChar>
+        <maskType>lastFour</maskType>
+        <required>false</required>
+        <type>EncryptedText</type>
+    </fields>
     <listViews>
         <fullName>AllContacts</fullName>
         <filterScope>Everything</filterScope>

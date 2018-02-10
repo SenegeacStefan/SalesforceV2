@@ -84,7 +84,6 @@
     </fields>
     <fields>
         <fullName>Attendee_Name__c</fullName>
-        <encrypted>false</encrypted>
         <externalId>false</externalId>
         <formula>if(
 ispickval( Type__c,&quot;Staff&quot;),

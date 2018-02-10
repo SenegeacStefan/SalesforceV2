@@ -14,7 +14,8 @@
  &quot;StartDateTime&quot;:&quot;date_time&quot;,
  &quot;EndDateTime&quot;:&quot;end_datetime&quot;,
  &quot;DurationInMinutes&quot;:&quot;duration&quot;,
- &quot;IsReminderSet&quot;:&quot;attended&quot;
+ &quot;IsReminderSet&quot;:&quot;attended&quot;,
+&quot;BookingBugId__c&quot;:&quot;client_id&quot;
 }</value>
     </values>
     <values>

@@ -77,6 +77,19 @@
         <type>Lookup</type>
     </fields>
     <fields>
+        <fullName>BookingBugId__c</fullName>
+        <externalId>true</externalId>
+        <label>BookingBugId</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>0</scale>
+        <trackFeedHistory>false</trackFeedHistory>
+        <trackHistory>false</trackHistory>
+        <trackTrending>false</trackTrending>
+        <type>Number</type>
+        <unique>true</unique>
+    </fields>
+    <fields>
         <fullName>BusinessHoursId</fullName>
         <trackFeedHistory>false</trackFeedHistory>
         <trackHistory>false</trackHistory>

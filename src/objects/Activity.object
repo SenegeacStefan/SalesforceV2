@@ -33,6 +33,16 @@
         <type>Default</type>
     </actionOverrides>
     <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>BookingBugId__c</fullName>
+        <externalId>true</externalId>
+        <label>BookingBugId</label>
+        <precision>18</precision>
+        <required>false</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>true</unique>
+    </fields>
     <listViews>
         <fullName>AllActivities</fullName>
         <filterScope>Team</filterScope>

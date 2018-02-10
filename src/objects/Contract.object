@@ -70,6 +70,7 @@
     </fields>
     <fields>
         <fullName>BillingAddress</fullName>
+        <encrypted>false</encrypted>
         <trackHistory>true</trackHistory>
     </fields>
     <fields>

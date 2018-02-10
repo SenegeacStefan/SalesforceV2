@@ -2,42 +2,18 @@ global class Booking extends CoreObject{
     public Integer id {get; set;}  
     public String full_describe {get; set;}  
     public String person_name {get; set;}  
-
     public String date_time {
         get;
         set {
             date_time = String.valueOf(Util.stringToDate(value));
         }
     }
-
     public String end_date_time {
         get;
         set {
             end_date_time = String.valueOf(Util.stringToDate(value));
         }
     }
-    /*
-    public DateTime date_time;
-    public String strdate_time {
-        get;
-        set {
-            try {
-                strdate_time = value;
-                //String strDate = value.formatGMT('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'');
-
-                Integer year = Integer.valueOf(strdate_time.substring(0, 4));
-                Integer month = Integer.valueOf(strdate_time.substring(5, 7));
-                Integer day = Integer.valueOf(strdate_time.substring(8, 10));
-                Integer hour = Integer.valueOf(strdate_time.substring(11, 13));
-                Integer minute = Integer.valueOf(strdate_time.substring(14, 16));
-                Integer second = Integer.valueOf(strdate_time.substring(17, 19));
-                
-                date_time = Datetime.newInstance(year, month, day, hour, minute, second);
-            }
-            catch(Exception ex) {}
-        }
-    }
-    */
     public Integer duration {get; set;}  
 	public Boolean on_waitlist {get; set;}
     public Integer company_id {get; set;}  
@@ -49,8 +25,8 @@ global class Booking extends CoreObject{
     public Integer resource_id {get; set;} 
     public Integer person_id {get; set;}  
     public Integer session_id {get; set;}  
-    public Integer price {get; set;}
-    public Integer paid {get; set;}
+    public Decimal price {get; set;}
+    public Decimal paid {get; set;}
     public Integer purchase_id {get; set;}
     public Boolean is_cancelled {get; set;}
     public String long_id {get; set;}

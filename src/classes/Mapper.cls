@@ -99,14 +99,36 @@ public with sharing class Mapper {
 		return clients;
 	}
 
+	//make method return Booking (single object and ajust EVERYWHERE)
 	public static List<Booking> deserializeBookings(String JSONString) {
-		Map<String, Object> objectMap = (Map<String, Object>)JSON.deserializeUntyped(JSONString);
-		Map<String, Object> justBookingsMap = (Map<String, Object>)objectMap.get('_embedded');
-		List<Object> bookingListRaw = (List<Object>)justBookingsMap.get('bookings');
-		List<Booking> bookings = (List<Booking>)JSON.deserialize(JSON.serialize(bookingListRaw)
-														.replace('"datetime":"', '"date_time":"'), 
-														List<Booking>.class);
-		return bookings;
+		List<Booking> books = new List<Booking>();
+		// Map<String, Object> objectMap = (Map<String, Object>)JSON.deserializeUntyped(JSONString);
+		// Map<String, Object> justBookingsMap = (Map<String, Object>)objectMap.get('_embedded');
+		// List<Object> bookingListRaw = (List<Object>)justBookingsMap.get('bookings');
+		// List<Booking> bookings = (List<Booking>)JSON.deserialize(JSON.serialize(bookingListRaw)
+		// 												.replace('"datetime":"', '"date_time":"'), 
+		// 												List<Booking>.class);
+		Booking book = new Booking();
+		JSONString = JSONString.replace('\\"', '"');
+		Object objectMap = (Object)JSON.deserializeUntyped(JSONString);
+		system.debug('==>Mapper jsonstring:' + objectMap);
+		book = (Booking)JSON.deserialize(JSON.serialize(objectMap)
+		 												.replace('"datetime":"', '"date_time":"'), 
+		 												Booking.class);
+		system.debug('==>Mapper booking class:' + book);
+		return books;
+	}
+
+	public static Person deserializeStaff(String JSONString) {
+		Person staff = new Person();
+        // Map<String, Object> embdeddedMap = (Map<String, Object>)responseMap.get('_embedded'); 
+        // List<Object> peopleListObject = (List<Object>)embdeddedMap.get('people');
+        // people = (List<Person>)JSON.deserialize(JSON.serialize(peopleListObject).replace('"datetime":"', '"date_time":"'), List<Person>.class);
+        //system.debug('==>Mapper staff objectMap:' + objectMap);
+        staff = (Person)JSON.deserialize(JSONString, Person.class);
+		system.debug('==>Mapper staff class:' + staff);
+        //List<Person> people = (List<Person>)JSON.deserialize(JSON.serialize(peopleListObject).replace('"datetime":"', '"date_time":"'), List<Person>.class);
+		return staff;
 	}
 
 	public static Map<String, Booking_Bug_Mapping__mdt> getMetadataRecordsMap() {
