@@ -35,4 +35,16 @@ public class BookingBugDataTriggerHandler extends TriggerHandler {
 			}
 		}
 	}
+
+	public override void beforeInsert() 
+	{
+		newBBDataList = Trigger.new;
+		for(BookingBug_Data__c bdata : newBBDataList) {
+			if(String.IsNotBlank(bdata.Staff__c)) {
+				bdata.staffnotempty__c = true;
+			} else {
+				bdata.staffnotempty__c = false;
+			}
+		}
+	}
 }

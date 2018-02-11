@@ -1,5 +1,6 @@
 global class Answer {
-    global Integer question_id;
-    global String name;
+    global Integer id;
+    global String question;
     global String answer;
+    //test
 }

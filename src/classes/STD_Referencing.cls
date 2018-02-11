@@ -1,3 +1,6 @@
+//VERY IMPORTANT CONSIDERATION - WE CURRENTLY USE MEMBER ID FOR BOOKINGBUGID ON BOOKING OBJECT 
+//IN FUTURE WE NEED TO PASS A SET OF MEMBER IDS ALONG WITH THE BOOKING SOBJECT TO LINK CORRECTLY
+
 public with sharing class STD_Referencing {
 	
 	//this will be triggered right after a DML OP from BB. A schedulable variant could also exist

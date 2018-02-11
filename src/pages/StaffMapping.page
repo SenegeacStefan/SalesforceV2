@@ -2,9 +2,10 @@
   <!-- Begin Default Content REMOVE THIS -->
   <h1>Congratulations</h1>
   This is your new Page
-  <!-- End Default Content REMOVE THIS -->
-
-  <apex:pageBlockTable>
-
-  <apex:pageBlockTable>
+  <!-- CREATE USER LOOKUP COLUMN -->
+  <apex:pageBlock title = 'Titlu'>
+    <apex:pageBlockTable value="{!AllStaff}" var="staff">
+      <apex:column value="{!staff.name}"/>
+    </apex:pageBlockTable>
+  </apex:pageBlock>
 </apex:page>

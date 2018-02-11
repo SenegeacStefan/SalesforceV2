@@ -77,4 +77,19 @@ public with sharing class BookingBugSelector {
 		return taskMap;
 	}
 	//=============================================================================================================================================================================
+
+	public static List<Person> getAllStaff() {
+		List<BookingBug_Data__c> staffJSONList = new List<BookingBug_Data__c>();
+		Map<Integer, Person> mapOfStaff = new Map<Integer, Person>(); //guarantee no duplicates
+		staffJSONList = [SELECT Staff__c FROM BookingBug_Data__c 
+										 WHERE staffnotempty__c = true];
+		system.debug('==>BookingBug Selector staffJSONList' + staffJSONList);
+		if(staffJSONList.size() > 0) {
+			for(BookingBug_Data__c s : staffJSONList) {
+				Person p = Mapper.deserializeStaff(s.Staff__c);
+				mapOfStaff.put(p.id, p);
+			}
+		}
+		return mapOfStaff.values();
+	}
 }

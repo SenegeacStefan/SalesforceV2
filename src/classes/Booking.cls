@@ -15,9 +15,9 @@ global class Booking extends CoreObject{
         }
     }
     public Integer duration {get; set;}  
-	public Boolean on_waitlist {get; set;}
+    public Boolean on_waitlist {get; set;}
     public Integer company_id {get; set;}  
-	public Boolean attended {get; set;} 
+    public Boolean attended {get; set;} 
     public String updated_at {get; set;}  
     public String created_at {get; set;}  
     public Integer client_id {get; set;} 
@@ -32,7 +32,7 @@ global class Booking extends CoreObject{
     public String long_id {get; set;}
     public String reference {get; set;}
     public Map<String, String> settings {get; set;}
-    public List<Answer> answers_summary {get; set;}
+    public List<Answer> questions {get; set;}
     
     public Booking() {}
     
@@ -42,9 +42,9 @@ global class Booking extends CoreObject{
                    String date_time,
                    String end_date_time,
                    Integer duration, 
-				   Boolean on_waitlist,
+                   Boolean on_waitlist,
                    Integer company_id, 
-				   Boolean attended,
+                   Boolean attended,
                    String updated_at, 
                    String created_at,
                    Integer client_id,
@@ -58,7 +58,7 @@ global class Booking extends CoreObject{
                    Boolean is_cancelled,
                    String long_id,
                    Map<String, String> settings,
-                   List<Answer> answers_summary) {
+                   List<Answer> questions ) {
         
         this.id = id;
         this.full_describe = full_describe;
@@ -66,9 +66,9 @@ global class Booking extends CoreObject{
         this.date_time = date_time;
         this.end_date_time = end_date_time;
         this.duration = duration;
-		this.on_waitlist = on_waitlist;
+        this.on_waitlist = on_waitlist;
         this.company_id = company_id;
-		this.attended = attended;
+        this.attended = attended;
         this.updated_at = updated_at;
         this.created_at = created_at;  
         this.client_id = client_id;
@@ -79,25 +79,20 @@ global class Booking extends CoreObject{
         this.purchase_id = purchase_id;
         this.price = price;
         this.is_cancelled = is_cancelled;
-		this.long_id = long_id;
+        this.long_id = long_id;
         this.settings = settings;
-		this.answers_summary = answers_summary;
+        this.questions = questions ;
     }
  
  
     public String getAnswer(String q)
     {
-    	if (answers_summary != null){
-	    	for (Answer a : answers_summary){
-	    		if (a.name == q) 
-	    			return a.answer;
-	    	}	
-    	}
-    	return null;
+        if (questions != null){
+            for (Answer a : questions ){
+                if (a.question == q) 
+                    return a.answer;
+            }   
+        }
+        return null;
     }
-
-    public boolean anotherMentodQuestion(Integer some_param) {
-        return false;
-    }
- 
 }
