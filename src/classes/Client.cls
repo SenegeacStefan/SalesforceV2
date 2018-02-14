@@ -1,6 +1,7 @@
 global class Client extends CoreObject{ 
 
     public Integer id {get; set;}
+    public String Name {get; set;}
     public String first_name {get; set;}
     public String last_name {get; set;}
     public String address1 {get; set;}
@@ -67,7 +68,7 @@ global class Client extends CoreObject{
     {
     	if (answers != null){
 	    	for (Answer a : answers){
-	    		if (a.name == q) 
+	    		if (a.question == q) 
 	    			return a.answer;
 	    	}	
     	}

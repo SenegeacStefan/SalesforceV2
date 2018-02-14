@@ -18,16 +18,24 @@ public class BookingBugDataTriggerHandler extends TriggerHandler {
 		for(BookingBug_Data__c bdata : newBBDataList) {
 			Mapper m = new Mapper();
 			if(String.isNotBlank(bdata.Clients__c)) {
-				List<Client> clients = new List<Client>();
-				clients = Mapper.deserializeClients(bdata.Clients__c);
-				Map<String, List<Sobject>> clientlist = m.createClientMapping(clients);
-				Util.makeDMLOperation(clientlist);
+				//try{
+					List<Client> clients = new List<Client>();
+					clients = Mapper.deserializeClients(bdata.Clients__c);
+					Map<String, List<Sobject>> clientlist = m.createClientMapping(clients);
+					Util.makeDMLOperation(clientlist);
+				// } catch(Exception ex) {
+				// 	system.debug('==>Handler Client Exception:' + ex.getMessage());
+				// }
 			}
 			if(String.isNotBlank(bdata.Booking__c)) {
-				List<Booking> bookings = new List<Booking>();
-				bookings = Mapper.deserializeBookings(bdata.Booking__c);
-				Map<string, List<Sobject>> booklist = m.createBookingMapping(bookings);
-				Util.makeDMLOperation(booklist); 
+				//try{
+					List<Booking> bookings = new List<Booking>();
+					bookings = Mapper.deserializeBookings(bdata.Booking__c);
+					Map<string, List<Sobject>> booklist = m.createBookingMapping(bookings);
+					Util.makeDMLOperation(booklist); 
+				// } catch(Exception ex) {
+				// 	system.debug('==>Handler Booking Exception:' + ex.getMessage());
+				// }
 			}
 			if(String.isNotBlank(bdata.Staff__c)) {
 				Person staff = new Person();

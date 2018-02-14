@@ -1,6 +1,8 @@
 public with sharing class Util {
 
 	public static String bbIDName = 'BookingBugId__c';
+	public static String bbMemberId = 'MemberId__c';
+	public static String bbStaffId = 'StaffId__c';
 	private static Database.DMLOptions dmlOptions = new Database.DMLOptions();
 	
 	//method to check for duplicates
@@ -8,12 +10,10 @@ public with sharing class Util {
 	public static void dynamicUpsert(List<Sobject> genericSObjects, String objectType) { 
 		system.debug('==>DynamicUpsert type:' + objectType);
 		Set<Integer> newExtIDSet = new Set<Integer>();
-		String bbID = 'BookingBugId__c';
-		//SObjectField uniqueField = Schema.get
 
 		//Loop through and build a set of External IDs that should be used for a query
 		for(Sobject sobj : genericSObjects){
-			Integer bbIdVal = Integer.ValueOf(sobj.get(bbID)); //convert to integer as bb id is decimal #yay
+			Integer bbIdVal = Integer.ValueOf(sobj.get(bbIDName)); //convert to integer as bb id is decimal #yay
 			//SObjectField 
 			if(bbIdVal != null) {
 				newExtIDSet.add(bbIdVal);
@@ -23,9 +23,9 @@ public with sharing class Util {
 		List<Sobject> sObjExistingList = new List<Sobject>();
 		//Now use those external IDs for matching
 		string sQuery = '';
-		sQuery = 'Select ID, ' + bbID +
+		sQuery = 'Select ID, ' + bbIDName +
 			' From ' + objectType + 
-			' Where ' + bbID + ' IN :newExtIDSet';
+			' Where ' + bbIDName + ' IN :newExtIDSet';
 		system.debug('==>newExtIdSet:' + newExtIDSet);
 		system.debug('==>sobjExistingQuery:' + sQuery);
 		sObjExistingList = database.query(sQuery);
@@ -33,15 +33,15 @@ public with sharing class Util {
 		//Now loop through the matches and build a map of that external ID to the actual Salesforce ID
 		Map<string, string> extIDToIDMap = new Map<string, string>();
 		for(sObject sObjItem : sObjExistingList) {
-			extIDToIDMap.put(string.valueOf(sObjItem.get(bbID)), sObjItem.ID);
+			extIDToIDMap.put(string.valueOf(sObjItem.get(bbIDName)), sObjItem.ID);
 		}
 
 		//Now loop through the items to be updated/inserted and assign the Salesforce IDs to that items that matches by the External ID
 		List<sObject> sObjInsertList = new List<sObject>();
 		List<sObject> sObjUpdateList = new List<sObject>();
 		for(Sobject sObjItem : genericSObjects) {
-			if(extIDToIDMap.containsKey(string.ValueOf(sObjItem.get(bbID)))) {
-				sObjItem.ID = extIDToIDMap.get(string.ValueOf(sObjItem.get(bbID))); //do something like sobjitm.get(bbid) si apoi, mai jos, upsert
+			if(extIDToIDMap.containsKey(string.ValueOf(sObjItem.get(bbIDName)))) {
+				sObjItem.ID = extIDToIDMap.get(string.ValueOf(sObjItem.get(bbIDName))); //do something like sobjitm.get(bbid) si apoi, mai jos, upsert
 				sObjUpdateList.add(sObjItem);
 			} else {
 				sObjInsertList.add(sObjItem);
@@ -79,6 +79,7 @@ public with sharing class Util {
 		List<SObject> recsToUpdateByID = filterUpdateOnly(objects); //(CASE #1) 
 		List<SObject> recsToUpdateByUniqueField = new List<SObject>(); //(CASE #2)
 		for(String objName : objects.keySet()) {
+			system.debug('==>Util makeDMLOP objName:' + objName);
 			String uniqueFieldName = objectFieldMappings.get(objName);
 			Schema.DescribeFieldResult uniqueField;
 			//update only(check unique field, assign BB ID, discard non found)
@@ -99,6 +100,7 @@ public with sharing class Util {
         		List<SObject> castRecords = (List<SObject>)Type.forName(listType).newInstance();
         		castRecords.addAll(objects.get(objName));
 				Schema.DescribeFieldResult bbExternalId = getFieldDetails(objName, bbIDName);
+				system.debug('==>UTIL MakeDMLOP UPSERT details:' + castRecords + ' bbextId:' + bbExternalId);
 				database.upsert(castRecords, bbExternalId.getSObjectField());
 				system.debug('==>castRecords:' + castRecords);
 			}
@@ -214,10 +216,10 @@ public with sharing class Util {
 
 	//STD OBJECT REFERENCING REGION
 	//=============================================================================================================================================
-	public static Set<Integer> extractBBId(List<SObject> objects) {
+	public static Set<Integer> extractBBId(List<SObject> objects, String bbFieldName) {
 		Set<Integer> bbIds = new Set<Integer>();
 			for(SObject sobj : objects) {
-				bbIds.add(Integer.valueOf(sobj.get(bbIDName)));
+				bbIds.add(Integer.valueOf(sobj.get(bbFieldName)));
 			}
 		system.debug('==>extracted BB Ids:' + bbIds);
 		return bbIds;

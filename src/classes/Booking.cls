@@ -1,4 +1,5 @@
 global class Booking extends CoreObject{
+    //update
     public Integer id {get; set;}  
     public String full_describe {get; set;}  
     public String person_name {get; set;}  
@@ -20,7 +21,7 @@ global class Booking extends CoreObject{
     public Boolean attended {get; set;} 
     public String updated_at {get; set;}  
     public String created_at {get; set;}  
-    public Integer client_id {get; set;} 
+    public Integer member_id {get; set;} 
     public Integer service_id {get; set;} 
     public Integer resource_id {get; set;} 
     public Integer person_id {get; set;}  
@@ -47,7 +48,7 @@ global class Booking extends CoreObject{
                    Boolean attended,
                    String updated_at, 
                    String created_at,
-                   Integer client_id,
+                   Integer member_id,
                    Integer service_id,
                    Integer session_id,
                    Integer resource_id,
@@ -71,7 +72,7 @@ global class Booking extends CoreObject{
         this.attended = attended;
         this.updated_at = updated_at;
         this.created_at = created_at;  
-        this.client_id = client_id;
+        this.member_id = member_id;
         this.service_id = service_id;
         this.session_id = session_id;
         this.resource_id = resource_id;

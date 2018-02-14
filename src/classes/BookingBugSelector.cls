@@ -16,6 +16,7 @@ public with sharing class BookingBugSelector {
 
 	//account = no link
 	public static Map<Integer, SObject> getBBAccounts(Set<Integer> bbids) {
+		system.debug('==>Selector getBBAccounts from Event:' + bbids);
 		String queryHolder = 'SELECT Id, {0} from {1} where {0} IN:bbids';
 		List<string> qryParams = new List<string>{Util.bbIDName, 'Account' };
 		Map<Integer, SObject> accMap = getBBIDMap(bbids, qryParams, queryHolder); 
@@ -43,8 +44,8 @@ public with sharing class BookingBugSelector {
 
 	//Opportunity = accountId
 	public static Map<Integer, SObject> getBBOpportunities(Set<Integer> bbids) {
-		String queryHolder = 'SELECT Id, {0},{2} from {1} where {0} IN:bbids';
-		List<string> qryParams = new List<string>{Util.bbIDName, 'Opportunity', 'AccountId'}; 
+		String queryHolder = 'SELECT Id, {0},{2},{3} from {1} where {0} IN:bbids';
+		List<string> qryParams = new List<string>{Util.bbIDName, 'Opportunity', Util.bbMemberId, 'AccountId'}; 
 		Map<Integer, SObject> opportunityMap = getBBIDMap(bbids, qryParams, queryHolder); 
 		System.debug('Selector opportunityMap:' + opportunityMap);
 		return opportunityMap;
@@ -52,8 +53,8 @@ public with sharing class BookingBugSelector {
 
 	//Case = accountId, contactID
 	public static Map<Integer, SObject> getBBCases(Set<Integer> bbids) {
-		String queryHolder = 'SELECT Id, {0},{2},{3} from {1} where {0} IN:bbids';
-		List<string> qryParams = new List<string>{Util.bbIDName, 'Case', 'AccountId','ContactId'}; 
+		String queryHolder = 'SELECT Id, {0},{2},{3},{4} from {1} where {0} IN:bbids';
+		List<string> qryParams = new List<string>{Util.bbIDName, 'Case', Util.bbMemberId, 'AccountId','ContactId'}; 
 		Map<Integer, SObject> caseMap = getBBIDMap(bbids, qryParams, queryHolder); 
 		System.debug('Selector caseMap:' + caseMap);
 		return caseMap;
@@ -61,8 +62,8 @@ public with sharing class BookingBugSelector {
 
 	//Event = whatId, whoId
 	public static Map<Integer, SObject> getBBEvents(Set<Integer> bbids) {
-		String queryHolder = 'SELECT Id, {0},{2},{3} from {1} where {0} IN:bbids';
-		List<string> qryParams = new List<string>{Util.bbIDName, 'Event', 'WhatId','WhoId'}; 
+		String queryHolder = 'SELECT Id, {0},{2},{3},{4} from {1} where {0} IN:bbids';
+		List<string> qryParams = new List<string>{Util.bbIDName, 'Event', Util.bbMemberId, 'WhatId','WhoId'}; 
 		Map<Integer, SObject> eventMap = getBBIDMap(bbids, qryParams, queryHolder); 
 		System.debug('Selector eventMap:' + eventMap);
 		return eventMap;
@@ -70,8 +71,8 @@ public with sharing class BookingBugSelector {
 
 	//Task = whatId, whoId
 	public static Map<Integer, SObject> getBBTasks(Set<Integer> bbids) {
-		String queryHolder = 'SELECT Id, {0},{2},{3} from {1} where {0} IN:bbids';
-		List<string> qryParams = new List<string>{Util.bbIDName, 'Task', 'WhatId','WhoId'}; 
+		String queryHolder = 'SELECT Id, {0},{2},{3},{4} from {1} where {0} IN:bbids';
+		List<string> qryParams = new List<string>{Util.bbIDName, 'Task', Util.bbMemberId, 'WhatId','WhoId'}; 
 		Map<Integer, SObject> taskMap = getBBIDMap(bbids, qryParams, queryHolder); 
 		System.debug('Selector taskMap:' + taskMap);
 		return taskMap;

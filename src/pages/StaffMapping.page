@@ -1,11 +1,79 @@
 <apex:page controller="StaffMappingController">
-  <!-- Begin Default Content REMOVE THIS -->
-  <h1>Congratulations</h1>
-  This is your new Page
   <!-- CREATE USER LOOKUP COLUMN -->
-  <apex:pageBlock title = 'Titlu'>
-    <apex:pageBlockTable value="{!AllStaff}" var="staff">
-      <apex:column value="{!staff.name}"/>
-    </apex:pageBlockTable>
+  <apex:form >
+  <apex:pageBlock title="Staff Mapping">
+      
+                <apex:outputPanel >
+                    <br/><br/>
+                    <table style="width:60%" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td width="48%">
+                                <apex:outputLabel escape="false" value="<b>BookingBug Person</b>"/>
+                            </td>
+                            <td width="4%">
+                            </td>
+                            <td width="48%" style="float: right">
+                                <apex:outputLabel escape="false" value="<b>Salesforce User</b><br/><br/>"/>
+                            </td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+      
+                <apex:outputPanel >
+                    <table style="width:60%" border="0" cellspacing="0" cellpadding="0">
+                        <apex:repeat value="{!StaffUsers}" var="p">
+                                <apex:variable value="" var="">
+                                    <tr>
+                                        <td width="48%" style="vertical-align: middle;">
+                                            <apex:outputText value="{!p.person.name}"/>
+                                        </td>
+                                        <td width="4%" style="font-size: 20px;">
+                                            <apex:outputPanel >
+                                                &rarr;
+                                            </apex:outputPanel>
+                                        </td>
+                                        <td width="48%" style="float: right">
+                                            <apex:inputField value="{!personUserMap[p].User__c}" />
+                                        </td>
+                                    </tr>
+                                </apex:variable>
+                            </apex:repeat>
+                        </table>
+                    </apex:outputPanel>
+      <apex:pageBlockButtons location="bottom">
+                    <apex:commandButton value="Save" action="{!saveMapping}"/>
+                </apex:pageBlockButtons>
+    <!--
+      <apex:pageBlockTable value="{!StaffUsers}" var="p">
+        <apex:column value="{!p.person.name}"/>
+        <apex:column>
+          <apex:inputField value="{!personUserMap[p].User__c}" />
+        </apex:column>
+      </apex:pageBlockTable>
+    -->
+
+    <!--
+		<table style="width: 48%;float: right;">
+        <apex:repeat value="{!Users}" var="u">
+        
+                 <tr>
+                    <td>
+                            <apex:inputField value="{!u.StaffId__c}"/> 
+                    </td>
+                 </tr>
+            
+       </apex:repeat>
+        </table>
+    <table style="width: 48%;float: left;">
+        <apex:repeat value="{!AllStaff}" var="p">
+        <tr>
+        <td>
+                    <apex:outputText value="{!p.name}"/>
+                </td>
+          </tr>   
+       </apex:repeat>
+    </table>
+    -->
   </apex:pageBlock>
+  </apex:form>
 </apex:page>

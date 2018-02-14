@@ -96,11 +96,13 @@ public with sharing class Mapper {
                 if(booking.questions != null && booking.questions.size() > 0 && questionMap != null && questionMap.size() > 0) {                         
                     for(Answer a : booking.questions) {
                         String fld = (String)questionMap.get(a.question); //field name
-                        if (rawObjectFieldMap.get(fld).getDescribe().getType() == Schema.DisplayType.Boolean) {
-                            String boolVal = (String.valueOf(a.answer)).toLowerCase();
-                            rawBooking.put(fld, (boolVal == 'true' || boolVal == 'yes' || boolVal == '1')); //field - answer 
-                        } else {
-                            rawBooking.put(fld, a.answer);
+                        if(String.IsNotBlank(fld)){
+                            if (rawObjectFieldMap.get(fld).getDescribe().getType() == Schema.DisplayType.Boolean) {
+                                String boolVal = (String.valueOf(a.answer)).toLowerCase();
+                                rawBooking.put(fld, (boolVal == 'true' || boolVal == 'yes' || boolVal == '1')); //field - answer 
+                            } else {
+                                rawBooking.put(fld, a.answer);
+                            }
                         }
                     }
                 }
@@ -125,16 +127,28 @@ public with sharing class Mapper {
     }
 
     public static List<Client> deserializeClients(String JSONString) {
-        System.debug('==>JSON-string: ' + JSONString);
-        Map<String, Object> objectMap = (Map<String, Object>)JSON.deserializeUntyped(JSONString);
-        system.debug('==>objectMap:' + objectMap);
-        Map<String, Object> justClientsMap = (Map<String, Object>) objectMap.get('_embedded');
-        system.debug('==>justClientsMap:' + justClientsMap);
-        List<Object> clientListRaw = (List<Object>)justClientsMap.get('clients');
-        List<Client> clients = (List<Client>)JSON.deserialize(JSON.serialize(clientListRaw)
-                                                          .replace('"datetime":"', '"date_time":"')
-                                                          .replace('"_links":{', '"links":{'),
-                                                      List<Client>.class);
+        List<Client> clients = new List<Client>();
+        Client member = new Client();
+        //JSONString = JSONString.replace('\\"', '"');
+        Object objectMap = (Object)JSON.deserializeUntyped(JSONString);
+        system.debug('==>Mapper jsonstring client:' + JSONString);
+        //Type clientType = Type.getType(Client.class);
+        member = (Client)JSON.deserialize(JSON.serialize(objectMap)
+                                                         .replace('datetime":"', '"date_time":"'), 
+                                                         Client.class);
+                                                        
+        system.debug('==>Mapper client class:' + member);
+        system.debug('==>Mapper client questions:' + member.answers);
+        clients.add(member);
+        // Map<String, Object> objectMap = (Map<String, Object>)JSON.deserializeUntyped(JSONString);
+        // system.debug('==>objectMap:' + objectMap);
+        // Map<String, Object> justClientsMap = (Map<String, Object>) objectMap.get('_embedded');
+        // system.debug('==>justClientsMap:' + justClientsMap);
+        // List<Object> clientListRaw = (List<Object>)justClientsMap.get('clients');
+        // List<Client> clients = (List<Client>)JSON.deserialize(JSON.serialize(clientListRaw)
+        //                                                   .replace('"datetime":"', '"date_time":"')
+        //                                                   .replace('"_links":{', '"links":{'),
+        //                                               List<Client>.class);
         return clients;
     }
 
@@ -214,4 +228,4 @@ public with sharing class Mapper {
         }
         return objectFieldMap;
     }
-}
+} //update
