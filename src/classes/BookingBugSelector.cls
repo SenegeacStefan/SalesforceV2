@@ -62,8 +62,8 @@ public with sharing class BookingBugSelector {
 
 	//Event = whatId, whoId
 	public static Map<Integer, SObject> getBBEvents(Set<Integer> bbids) {
-		String queryHolder = 'SELECT Id, {0},{2},{3},{4} from {1} where {0} IN:bbids';
-		List<string> qryParams = new List<string>{Util.bbIDName, 'Event', Util.bbMemberId, 'WhatId','WhoId'}; 
+		String queryHolder = 'SELECT Id, {0},{2},{3},{4},{5},{6} from {1} where {0} IN:bbids';
+		List<string> qryParams = new List<string>{Util.bbIDName, 'Event', Util.bbMemberId, Util.bbStaffId, 'OwnerId', 'WhatId','WhoId'}; 
 		Map<Integer, SObject> eventMap = getBBIDMap(bbids, qryParams, queryHolder); 
 		System.debug('Selector eventMap:' + eventMap);
 		return eventMap;
@@ -92,5 +92,9 @@ public with sharing class BookingBugSelector {
 			}
 		}
 		return mapOfStaff.values();
+	}
+
+	public static List<User> getStaffUser(Integer staffId) {
+		return [Select Id, StaffId__c from User where StaffId__c =: staffId];
 	}
 }

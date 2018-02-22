@@ -5,58 +5,6 @@ public with sharing class Util {
 	public static String bbStaffId = 'StaffId__c';
 	private static Database.DMLOptions dmlOptions = new Database.DMLOptions();
 	
-	//method to check for duplicates
-	//Updates or inserts a list of objects based on the uniqueness of the BB ID
-	public static void dynamicUpsert(List<Sobject> genericSObjects, String objectType) { 
-		system.debug('==>DynamicUpsert type:' + objectType);
-		Set<Integer> newExtIDSet = new Set<Integer>();
-
-		//Loop through and build a set of External IDs that should be used for a query
-		for(Sobject sobj : genericSObjects){
-			Integer bbIdVal = Integer.ValueOf(sobj.get(bbIDName)); //convert to integer as bb id is decimal #yay
-			//SObjectField 
-			if(bbIdVal != null) {
-				newExtIDSet.add(bbIdVal);
-			}
-		}
-
-		List<Sobject> sObjExistingList = new List<Sobject>();
-		//Now use those external IDs for matching
-		string sQuery = '';
-		sQuery = 'Select ID, ' + bbIDName +
-			' From ' + objectType + 
-			' Where ' + bbIDName + ' IN :newExtIDSet';
-		system.debug('==>newExtIdSet:' + newExtIDSet);
-		system.debug('==>sobjExistingQuery:' + sQuery);
-		sObjExistingList = database.query(sQuery);
-		system.debug('==>SObjExistingList:' + sObjExistingList);
-		//Now loop through the matches and build a map of that external ID to the actual Salesforce ID
-		Map<string, string> extIDToIDMap = new Map<string, string>();
-		for(sObject sObjItem : sObjExistingList) {
-			extIDToIDMap.put(string.valueOf(sObjItem.get(bbIDName)), sObjItem.ID);
-		}
-
-		//Now loop through the items to be updated/inserted and assign the Salesforce IDs to that items that matches by the External ID
-		List<sObject> sObjInsertList = new List<sObject>();
-		List<sObject> sObjUpdateList = new List<sObject>();
-		for(Sobject sObjItem : genericSObjects) {
-			if(extIDToIDMap.containsKey(string.ValueOf(sObjItem.get(bbIDName)))) {
-				sObjItem.ID = extIDToIDMap.get(string.ValueOf(sObjItem.get(bbIDName))); //do something like sobjitm.get(bbid) si apoi, mai jos, upsert
-				sObjUpdateList.add(sObjItem);
-			} else {
-				sObjInsertList.add(sObjItem);
-			}
-		}
-		if(sObjUpdateList.size() > 0) {
-			system.debug('==>Update List:' + sObjUpdateList);
-			update sObjUpdateList; //modify to database.update
-		}
-		if(sObjInsertList.size() > 0) {
-			system.debug('==>Insert List:' + sObjInsertList);
-			insert sObjInsertList;	//modify to database.insert
-		}
-	} //could be cool to also check email(for dupes) here and have a setting IN CLIENT RECORDS (OMG) - if yes/no 
-
 
 	//new dynamic upsert
 	//type is API_Name__c
@@ -68,6 +16,91 @@ public with sharing class Util {
 	//CASE #2 - update by existing field, discard rest
 	//CASE #3 - update by existing field, upsert rest by bb id 
 	//this method will not make DB Callouts! move DML ops in different method
+
+	public static void makeDMLOperation(Map<Booking_Bug_Mapping__mdt, SObject> objects) {
+		for(Booking_Bug_Mapping__mdt m : objects.keySet()) {
+			String sobjectName = objects.get(m).getSObjectType().getDescribe().getName();
+			if(String.isNotBlank(m.Unique_Field__c)) {
+				Schema.DescribeFieldResult uniqueField = getFieldDetails(objects.get(m), m.Unique_Field__c);
+				if(m.Update_Only__c) { //find and update only objects that match the value for the unique field
+					Boolean foundObj = updateObjectByUniqueField(objects.get(m), uniqueField);
+					if(foundObj) { 
+						Database.SaveResult result = database.update(objects.get(m), false);
+						system.debug('==>Unique field update only:' + result);
+					} else {
+						system.debug('==>Unique field update only: RECORD NOT FOUND');
+					}
+				} else { //find objects that match and insert(or upsert if possible) the rest
+					if(uniqueField.isExternalID()) {
+						//tricks to get upsert with no concrete sobject
+						String listType = 'List<' + sobjectName + '>';
+						List<SObject> castRecord = (List<SObject>)Type.forName(listType).newInstance();
+						castRecord.add(objects.get(m));
+						Database.UpsertResult[] result = database.upsert(castRecord, uniqueField.getSObjectField());
+						system.debug('==>Unique field external ID:' + result[0]);
+					} else {
+						Boolean foundObj = updateObjectByUniqueField(objects.get(m), uniqueField);
+						if(foundObj) {
+							Database.SaveResult result = database.update(objects.get(m), false);
+							system.debug('==>Unique field not external ID and found:' + result);
+						} else {
+							Database.SaveResult result = database.insert(objects.get(m), false);
+							system.debug('==>Unique field update only not found:' + result);
+						}
+					}
+				}
+			} else { //if unique field is blank
+				Database.SaveResult result = database.insert(objects.get(m), false);
+				system.debug('==>No unique Field just insert:' + result);
+			}
+		}
+	}
+
+	//return True if object was found and the parameter object was updated, false otherwise 
+	//in case unique field is ID exclude duplicate case(select id, id...)
+	public static Boolean updateObjectByUniqueField(SObject sobj, Schema.DescribeFieldResult fieldName) {
+		if(sobj.get(fieldName.getName()) != null) {
+			List<string> qryParams;
+			List<SObject> foundObject;
+			//String val = String.valueOf(sobj.get(fieldName.getName()));
+			Object val = sobj.get(fieldName.getName());
+			qryParams = new String[]{fieldName.getName(), sobj.getSObjectType().getDescribe().getName()};
+			Boolean isId = false;
+			if(fieldName.getName().toLowerCase() == 'id') isId = true;
+			if (!fieldName.isFilterable()) {
+				try{
+					String qryHolder = 'FIND :val IN {0} FIELDS Returning {1}(Id, {0})]';	
+					String query = String.format(qryHolder, qryParams);
+					foundObject = Search.query(query)[0];
+					if(foundObject.size() > 0) {
+						sobj.put('Id', foundObject[0].get('Id'));
+						return true;
+					}
+					return false; 
+				} catch(Exception ex) {
+					system.debug('==>Failed Object SOSL query: ' + ex.getMessage());
+					return false;
+				}
+			} else {
+				try{
+					String qryHolder = 'SELECT Id, {0} FROM {1} WHERE {0} =: val';
+					if(isId) qryHolder = 'SELECT {0} FROM {1} WHERE {0} =: val';
+					String query = String.format(qryHolder, qryParams);
+					system.debug('==>Query for obect by unique field: ' + query);
+					foundObject = database.query(query);
+					if(foundObject.size() > 0) {
+						sobj.put('Id', foundObject[0].get('Id'));
+						return true;
+					}
+					return false;
+				} catch(Exception ex) {
+					system.debug('==>Faield Object SOQL query: ' + ex.getMessage());
+					return false;
+				}
+			}
+		}
+		return false;
+	}
 
 	//!!!!!!!!!!!!!!!!!!!!!!!! - STOP UPSERT IF ONLY UPDATE SELECTED - !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	public static void makeDMLOperation(Map<String, List<Sobject>> objects) { //objectname - listof objects
@@ -120,6 +153,13 @@ public with sharing class Util {
 
 		Map<String, Schema.SObjectField>    objectFieldMap          = objectDescribeResult.fields.getMap();
 		Schema.SObjectField                 objectField             = objectFieldMap.get(fieldName);
+		return objectField.getDescribe();
+	}
+
+	public static Schema.DescribeFieldResult getFieldDetails(SObject sobj, String fieldName) {
+		Schema.DescribeSObjectResult objectDescribeResult = sobj.getSObjectType().getDescribe();
+		Schema.SObjectField objectField = objectDescribeResult.fields.getMap().get(fieldName);
+
 		return objectField.getDescribe();
 	}
 

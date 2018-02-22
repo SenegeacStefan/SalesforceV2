@@ -1,6 +1,5 @@
 public class BookingBugDataTriggerHandler extends TriggerHandler {
 
-	private Map<Id, BookingBug_Data__c> newBBDataMap;
 	private List<BookingBug_Data__c> newBBDataList;
 	
 	
@@ -11,28 +10,25 @@ public class BookingBugDataTriggerHandler extends TriggerHandler {
 
 	public override void afterInsert()
 	{
-		//this section will be moved in a separate(domain? class)
-		system.debug('==>once or twice or more?');
 		newBBDataList = Trigger.new;
-		//system.debug('==>newBBDataList: ' + newBBDataList);
 		for(BookingBug_Data__c bdata : newBBDataList) {
 			Mapper m = new Mapper();
 			if(String.isNotBlank(bdata.Clients__c)) {
-				//try{
-					List<Client> clients = new List<Client>();
-					clients = Mapper.deserializeClients(bdata.Clients__c);
-					Map<String, List<Sobject>> clientlist = m.createClientMapping(clients);
-					Util.makeDMLOperation(clientlist);
-				// } catch(Exception ex) {
-				// 	system.debug('==>Handler Client Exception:' + ex.getMessage());
-				// }
+					//List<Client> clients = new List<Client>();
+					Client member = new Client(); 
+					member = Mapper.deserializeClient(bdata.Clients__c);
+					Map<Booking_Bug_Mapping__mdt, SObject> cList = Mapper.createClientMapping(member);
+					system.debug('==>Handler Client List:' + cList);
+					Util.makeDMLOperation(cList);
 			}
 			if(String.isNotBlank(bdata.Booking__c)) {
 				//try{
-					List<Booking> bookings = new List<Booking>();
-					bookings = Mapper.deserializeBookings(bdata.Booking__c);
-					Map<string, List<Sobject>> booklist = m.createBookingMapping(bookings);
-					Util.makeDMLOperation(booklist); 
+					//List<Booking> bookings = new List<Booking>();
+					Booking book = new Booking();
+					book = Mapper.deserializeBooking(bdata.Booking__c);
+					List<SObject> booklist = Mapper.createBookingMapping(book);
+					system.debug('==>Handler Booking List:' + booklist);
+					//Util.makeDMLOperation(booklist); 
 				// } catch(Exception ex) {
 				// 	system.debug('==>Handler Booking Exception:' + ex.getMessage());
 				// }

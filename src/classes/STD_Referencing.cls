@@ -36,6 +36,8 @@ public with sharing class STD_Referencing {
 					system.debug('==>STD Referencing bbIds Event:' + bbids);
 					for(Integer bbId : eventMap.keyset()) {
 						Integer memberId = Integer.ValueOf(eventMap.get(bbId).get(Util.bbMemberId)); //get member ID from Booking
+						Integer staffId = Integer.ValueOf(EventMap.get(bbId).get(Util.bbStaffId));
+						List<User> ownerId = BookingBugSelector.getStaffUser(staffId);
 						system.debug('==>STD EVENT memberId:' + memberId);
 						Id accId = assignNotNullValue(accountMap, memberId);
 						Id caseId = assignNotNullValue(caseMap, memberId);
@@ -47,6 +49,8 @@ public with sharing class STD_Referencing {
 						Id leadId = assignNotNullValue(leadMap, memberId);
 						Id whoId = ctId == null? leadId : ctId;
 						eventMap.get(bbId).put('WhoId', whoId);
+						if(ownerId.size() > 0 )
+							eventMap.get(bbId).put('OwnerId', ownerId[0].Id);
 						system.debug('==>STD EVENT ctID: ' + ctId);
 					}
 					referencedObjects.addAll(eventMap.values());
