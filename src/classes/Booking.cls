@@ -32,12 +32,12 @@ global class Booking extends CoreObject{
     public Boolean is_cancelled {get; set;}
     public String long_id {get; set;}
     public String reference {get; set;}
-    public Map<String, String> settings {get; set;}
+    //public Map<String, String> settings {get; set;}
     public List<Answer> questions {get; set;}
     
     public Booking() {}
-    
-    public Booking(Integer id, 
+
+     public Booking(Integer id, 
                    String full_describe, 
                    String person_name, 
                    String date_time,
@@ -58,8 +58,31 @@ global class Booking extends CoreObject{
                    Integer purchase_id,
                    Boolean is_cancelled,
                    String long_id,
-                   Map<String, String> settings,
                    List<Answer> questions ) {
+    
+    // public Booking(Integer id, 
+    //                String full_describe, 
+    //                String person_name, 
+    //                String date_time,
+    //                String end_date_time,
+    //                Integer duration, 
+    //                Boolean on_waitlist,
+    //                Integer company_id, 
+    //                Boolean attended,
+    //                String updated_at, 
+    //                String created_at,
+    //                Integer member_id,
+    //                Integer service_id,
+    //                Integer session_id,
+    //                Integer resource_id,
+    //                Integer person_id,
+    //                Integer price,
+    //                Integer paid,
+    //                Integer purchase_id,
+    //                Boolean is_cancelled,
+    //                String long_id,
+    //                Map<String, String> settings,
+    //                List<Answer> questions ) {
         
         this.id = id;
         this.full_describe = full_describe;
@@ -81,7 +104,7 @@ global class Booking extends CoreObject{
         this.price = price;
         this.is_cancelled = is_cancelled;
         this.long_id = long_id;
-        this.settings = settings;
+        //this.settings = settings;
         this.questions = questions ;
     }
  
